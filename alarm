@@ -1,0 +1,37 @@
+#!/bin/bash
+
+now="$(date +"%H:%M")"
+alarm="$1"
+
+now_h="$(echo "$now" | cut -d ':' -f1 | sed 's/^0*//')"
+now_m="$(echo "$now" | cut -d ':' -f2 | sed 's/^0*//')"
+
+alarm_h="$(echo "$alarm" | cut -d ':' -f1 | sed 's/^0*//')"
+alarm_m="$(echo "$alarm" | cut -d ':' -f2 | sed 's/^0*//')"
+
+if [ "$now_m" -gt "$alarm_m" ]; then
+    r="$((60-"$now_m"))"
+    sleep_m="$(("$r"+"$alarm_m"))"
+    m_ret="1"
+else
+    sleep_m="$(("$alarm_m"-"$now_m"))"
+fi
+
+if [ "$now_h" -gt "$alarm_h" ]; then
+    r="$((24-"$now_h"))"
+    sleep_h="$(("$r"+"$alarm_h"))"
+else
+    sleep_h="$(("$alarm_h"-"$now_h"))"
+fi
+
+if [[ "$m_ret" ]]; then
+    sleep_h="$(("$sleep_h"-1))"
+fi
+
+echo "alarm set in ${sleep_h}h ${sleep_m}m"
+
+sleep "${sleep_h}h" "${sleep_m}m"
+
+amixer -D pulse sset Master 100%
+
+paplay alarm.wav
